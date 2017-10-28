@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/trailer_title"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:drawablePadding="@dimen/padding_8"
+    android:drawableStart="@android:drawable/ic_media_play"
+    android:drawableTint="@color/colorAccent"
+    android:gravity="center_vertical"
+    android:padding="@dimen/padding_space"
+    android:paddingEnd="@dimen/padding_8"
+    android:paddingStart="@dimen/padding_8"
+    android:paddingTop="6dp"
+    tools:text="@string/trailers" />
+
+

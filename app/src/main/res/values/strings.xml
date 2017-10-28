@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">Movies</string>
+    <string name="movie_poster">Movie Poster</string>
+    <string name="settings">Settings</string>
+
+    <string name="pref_sort_by_title">Sort By</string>
+    <string name="pref_sort_by_key" translatable="false">sort by</string>
+    <string name="pref_sort_by_default_value" translatable="false">@string/pref_sort_by_popular_value</string>
+
+    <string name="pref_sort_by_popular_label">Most Popular</string>
+    <string name="pref_sort_by_popular_value" translatable="false">popular</string>
+
+    <string name="pref_sort_by_top_rated_label">Top Rated</string>
+    <string name="pref_sort_by_top_rated_value" translatable="false">top_rated</string>
+
+    <string name="pref_sort_by_favorites_label">Favorites</string>
+    <string name="pref_sort_by_favorites_value" translatable="false">favorites</string>
+    <string name="check_network">Please Check You Network Connectivity</string>
+    <string name="title_overView">OverView</string>
+    <string name="title_trailers">Trailers</string>
+    <string name="title_reviews">Reviews</string>
+    <string name="trailers">Trailers</string>
+    <string name="time_out">Time Out</string>
+    <string name="conversion_time">Conversion Error</string>
+    <string name="other_error">Other Error</string>
+    <string name="empty_list">Empty List</string>
+    <string name="released_date">Release Date:</string>
+    <string name="vote_average">Vote Avgerage:</string>
+
+
+    <string-array name="settings_sort_by_labels">
+        <item>@string/pref_sort_by_popular_label</item>
+        <item>@string/pref_sort_by_top_rated_label</item>
+        <item>@string/pref_sort_by_favorites_label</item>
+    </string-array>
+
+    <string-array name="settings_sort_by_value">
+        <item>@string/pref_sort_by_popular_value</item>
+        <item>@string/pref_sort_by_top_rated_value</item>
+        <item>@string/pref_sort_by_favorites_value</item>
+    </string-array>
+</resources>
