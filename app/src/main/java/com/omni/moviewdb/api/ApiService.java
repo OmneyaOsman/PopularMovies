@@ -1,4 +1,4 @@
-package com.omni.moviewdb.Api;
+package com.omni.moviewdb.api;
 
 import com.omni.moviewdb.model.movieResponse.MovieResponse;
 import com.omni.moviewdb.model.reviewsResponse.ReviewResponse;

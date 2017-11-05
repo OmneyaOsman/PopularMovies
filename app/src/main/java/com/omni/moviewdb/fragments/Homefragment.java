@@ -1,7 +1,9 @@
 package com.omni.moviewdb.fragments;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,22 +11,20 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.omni.moviewdb.Api.ApiClient;
-import com.omni.moviewdb.Api.ApiService;
 import com.omni.moviewdb.BuildConfig;
-import com.omni.moviewdb.MainActivity;
 import com.omni.moviewdb.R;
+import com.omni.moviewdb.activity.MainActivity;
 import com.omni.moviewdb.adapter.ImageAdapter;
+import com.omni.moviewdb.api.ApiClient;
+import com.omni.moviewdb.api.ApiService;
 import com.omni.moviewdb.event.MovieClickListener;
-import com.omni.moviewdb.model.RealmMovie;
-import com.omni.moviewdb.model.movieResponse.Movie;
+import com.omni.moviewdb.model.movieResponse.MovieItem;
 import com.omni.moviewdb.model.movieResponse.MovieResponse;
 import com.omni.moviewdb.utils.BaseFragment;
 
@@ -35,19 +35,16 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import io.realm.Realm;
-import io.realm.RealmResults;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static com.bumptech.glide.gifdecoder.GifHeaderParser.TAG;
+
+public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener ,
+        ImageAdapter.OnItemClickListener {
 
 
-public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener , ImageAdapter.OnItemClickListener {
-
-
-    private  Call<MovieResponse> getMovies ;
+    private Call<MovieResponse> getMovies ;
 
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView ;
@@ -58,43 +55,60 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
     @BindView(R.id.movies_swipe_refresh)
     SwipeRefreshLayout swipeRefreshLayout ;
 
-    private List<Movie> movies  = null;
+    private List<MovieItem> movies = null;
 
-    private static String key = "";
-    private MovieClickListener movieListener ;
+    private MovieClickListener movieListener;
 
-    private Realm realm ;
+    private ImageAdapter mAdapter;
+
+    private static final String RECYCLER_VIEW_STATE = "state";
+
+    private GridLayoutManager manager ;
 
 
-
-
-    public void setMovieListener( MovieClickListener movieClickListener){
-        this.movieListener = movieClickListener ;
+    public void setMovieListener(MovieClickListener movieClickListener) {
+        this.movieListener = movieClickListener;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        Log.d(TAG, "onCreate: ");
 
-        key = getSortKey();
 
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume: ");
 
-        if(!key.equals(getSortKey()))
-            getActivity().recreate();
-}
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("movies" ,(ArrayList<Movie>) movies);
+        outState.putParcelableArrayList("movies" ,(ArrayList<MovieItem>) movies);
+        outState.putParcelable(RECYCLER_VIEW_STATE, recyclerView.getLayoutManager().onSaveInstanceState());
+
+    }
+
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+        if(savedInstanceState != null)
+        {
+
+            movies = savedInstanceState.getParcelableArrayList("movies");
+
+            if (movies != null) {
+                mAdapter = new ImageAdapter(getActivity(),
+                        getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
+                recyclerView.setAdapter(mAdapter);
+
+
+//                Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(RECYCLER_VIEW_STATE);
+                recyclerView.getLayoutManager().onRestoreInstanceState(state);
+            }
+        }
     }
 
     @Nullable
@@ -103,11 +117,9 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
         View rootView = inflater.inflate(R.layout.home_fragment, container, false);
         Unbinder unbinder = ButterKnife.bind(this, rootView);
 
-        realm = Realm.getDefaultInstance();
         setMovieListener((MainActivity) getActivity());
 
-        GridLayoutManager manager = new GridLayoutManager(getActivity(), numberOfColumns());
-        recyclerView.setLayoutManager(manager);
+
 
         return rootView;
     }
@@ -124,21 +136,45 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
     }
 
 
+   static Parcelable state;
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        state = manager.onSaveInstanceState();
+    }
+
+//    @Override
+//    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+//        super.onViewCreated(view, savedInstanceState);
+//
+//        if(savedInstanceState != null)
+//        {
+//
+//            movies = savedInstanceState.getParcelableArrayList("movies");
+//
+//            if (movies != null) {
+//                mAdapter = new ImageAdapter(getActivity(),
+//                        getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
+//                recyclerView.setAdapter(mAdapter);
+//            }
+//
+//            Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(RECYCLER_VIEW_STATE);
+//            recyclerView.getLayoutManager().onRestoreInstanceState(savedRecyclerLayoutState);
+//        }
+//    }
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
 
         if (getActivity() != null) {
-            if (savedInstanceState != null) {
-                movies = savedInstanceState.getParcelableArrayList("movies");
 
-                if (movies != null) {
-                    ImageAdapter adapter = new ImageAdapter(getActivity(),
-                            getPostersList((ArrayList<Movie>) movies), Homefragment.this);
-                    recyclerView.setAdapter(adapter);
-                }
-            } else {
+            if (savedInstanceState == null ) {
+
+                GridLayoutManager manager = new GridLayoutManager(getActivity(), numberOfColumns());
+                recyclerView.setLayoutManager(manager);
 
                 if (isNetworkConnected()) {
 
@@ -146,20 +182,10 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                         ApiService apiService = ApiClient.getClient().create(ApiService.class);
                         getMovies = apiService.getPopularMovies(BuildConfig.MOVIE_DB_API_KEY);
                         senMoviesRequest(getMovies, 0);
-                    } else if(getSortKey().equals(getString(R.string.pref_sort_by_top_rated_value))){
+                    } else if (getSortKey().equals(getString(R.string.pref_sort_by_top_rated_value))) {
                         ApiService apiService = ApiClient.getClient().create(ApiService.class);
                         getMovies = apiService.getTopRatedMovies(BuildConfig.MOVIE_DB_API_KEY);
                         senMoviesRequest(getMovies, 0);
-                    }else if(getSortKey().equals(getString(R.string.pref_sort_by_favorites_value))){
-
-                        RealmResults<RealmMovie> realmMovies = realm.where(RealmMovie.class).findAll();
-                        if(realmMovies!=null  && realmMovies.size()!=0){
-                            ImageAdapter adapter = new ImageAdapter(getActivity(),
-                                    getPostersRealmList(realmMovies), Homefragment.this);
-                            recyclerView.setAdapter(adapter);
-                            movies = migrateRealmToMovie(realmMovies);
-                        }
-                        progressBar.setVisibility(View.GONE);
                     }
 
 
@@ -168,6 +194,8 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     Toast.makeText(getActivity(), R.string.check_network, Toast.LENGTH_SHORT).show();
                 }
             }
+
+
             swipeRefreshLayout.setOnRefreshListener(this);
         }
 
@@ -184,7 +212,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
 
     private void senMoviesRequest(Call<MovieResponse> getMovies, final int refresh) {
 
-
+        progressBar.setVisibility(View.VISIBLE);
         getMovies.enqueue(new Callback<MovieResponse>() {
 
             @Override
@@ -194,7 +222,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 if (response.body() != null) {
                     movies = response.body().getMovies();
                     ImageAdapter adapter = new ImageAdapter(getActivity(),
-                            getPostersList((ArrayList<Movie>) movies), Homefragment.this);
+                            getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
                     recyclerView.setAdapter(adapter);
 
                 }
@@ -232,24 +260,18 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
         });
     }
 
-    private ArrayList<String> getPostersList(ArrayList<Movie> movies) {
-        ArrayList<String> posters = new ArrayList<>();
 
-        for (Movie movie : movies) {
-
-            posters.add(movie.getPosterPath());
-
-        }
-
-        return posters;
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
     }
 
-    private ArrayList<String> getPostersRealmList(RealmResults<RealmMovie> movies) {
+    private ArrayList<String> getPostersList(ArrayList<MovieItem> movies) {
         ArrayList<String> posters = new ArrayList<>();
 
-        for (Movie movie : migrateRealmToMovie(movies)) {
+        for (MovieItem movieItem : movies) {
 
-            posters.add(movie.getPosterPath());
+            posters.add(movieItem.getPosterPath());
 
         }
 
@@ -257,17 +279,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
     }
 
 
-    private ArrayList<Movie> migrateRealmToMovie(RealmResults<RealmMovie> movies) {
-        ArrayList<Movie> moviesList = new ArrayList<>();
 
-        for (RealmMovie movie : movies) {
-            moviesList.add(new Movie(movie.getmImageResource() , movie.getmOriginalTitle() , movie.getmOverView() ,
-                    movie.getmReleaseDate() , movie.getmVoteAverage() , movie.getmId() , movie.getBackdropPath() ,movie.getFavorite()));
-
-
-        }
-        return moviesList ;
-    }
 
 
     @Override
@@ -289,7 +301,6 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
             else if (getSortKey().equals(getString(R.string.pref_sort_by_top_rated_value)))
                 getMovies = apiService.getTopRatedMovies(BuildConfig.MOVIE_DB_API_KEY);
             else
-                realm.refresh();
 
             senMoviesRequest(getMovies, 1);
 
@@ -303,8 +314,9 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
 
     @Override
     public void setOnItemClickListener(int position) {
-        Movie currentMovie = movies.get(position);
-        movieListener.onMovieClickListener(currentMovie);
+        MovieItem currentMovieItem = movies.get(position);
+        movieListener.onMovieClickListener(currentMovieItem);
 
     }
+
 }

@@ -1,12 +1,11 @@
 package com.omni.moviewdb.event;
 
-import com.omni.moviewdb.model.movieResponse.Movie;
-
+import com.omni.moviewdb.model.movieResponse.MovieItem;
 
 
 public interface MovieClickListener {
 
-     void onMovieClickListener(Movie movie);
+     void onMovieClickListener(MovieItem movieItem);
 
 
 }

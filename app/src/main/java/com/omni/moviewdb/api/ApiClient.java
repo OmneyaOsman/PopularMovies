@@ -1,4 +1,4 @@
-package com.omni.moviewdb.Api;
+package com.omni.moviewdb.api;
 
 import com.omni.moviewdb.utils.AppConfig;
 
@@ -9,7 +9,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 
-public class ApiClient {
+public final class ApiClient {
+
+    private ApiClient(){}
     public static Retrofit getClient(){
          Retrofit retrofit = null ;
 

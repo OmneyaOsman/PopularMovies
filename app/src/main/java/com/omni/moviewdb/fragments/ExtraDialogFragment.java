@@ -16,8 +16,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.omni.moviewdb.Api.ApiClient;
-import com.omni.moviewdb.Api.ApiService;
+import com.omni.moviewdb.api.ApiClient;
+import com.omni.moviewdb.api.ApiService;
 import com.omni.moviewdb.BuildConfig;
 import com.omni.moviewdb.R;
 import com.omni.moviewdb.adapter.ReviewsAdapter;

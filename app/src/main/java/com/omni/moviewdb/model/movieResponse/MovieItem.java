@@ -10,7 +10,7 @@ import java.util.List;
 
 
 
-public class Movie implements Parcelable{
+public class MovieItem implements Parcelable{
 
     @SerializedName("vote_count")
     @Expose
@@ -57,7 +57,7 @@ public class Movie implements Parcelable{
 
     private int favorite ;
 
-    protected Movie(Parcel in) {
+    protected MovieItem(Parcel in) {
         title = in.readString();
         posterPath = in.readString();
         originalLanguage = in.readString();
@@ -72,8 +72,8 @@ public class Movie implements Parcelable{
 
 
 
-    public Movie(String mImageResource, String mOriginalTitle, String mOverView, String mReleaseDate,
-                 double mVoteAverage, int mId , String coverImage , int favorite) {
+    public MovieItem(String mImageResource, String mOriginalTitle, String mOverView, String mReleaseDate,
+                     double mVoteAverage, int mId , String coverImage , int favorite) {
         this.posterPath = mImageResource;
         this.overview = mOverView;
         this.releaseDate = mReleaseDate;
@@ -85,15 +85,15 @@ public class Movie implements Parcelable{
 
     }
 
-    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+    public static final Creator<MovieItem> CREATOR = new Creator<MovieItem>() {
         @Override
-        public Movie createFromParcel(Parcel in) {
-            return new Movie(in);
+        public MovieItem createFromParcel(Parcel in) {
+            return new MovieItem(in);
         }
 
         @Override
-        public Movie[] newArray(int size) {
-            return new Movie[size];
+        public MovieItem[] newArray(int size) {
+            return new MovieItem[size];
         }
     };
 

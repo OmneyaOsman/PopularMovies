@@ -1,4 +1,4 @@
-package com.omni.moviewdb;
+package com.omni.moviewdb.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,9 +7,10 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
+import com.omni.moviewdb.R;
 import com.omni.moviewdb.fragments.ExtraDialogFragment;
-import com.omni.moviewdb.fragments.MovieProfile;
-import com.omni.moviewdb.model.movieResponse.Movie;
+import com.omni.moviewdb.fragments.MovieProfileFragment;
+import com.omni.moviewdb.model.movieResponse.MovieItem;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -18,7 +19,7 @@ public class DetailsActivity extends AppCompatActivity {
 
 
 
-    private Movie movie ;
+    private MovieItem movieItem;
 
 
     @BindView(R.id.navigation_view)
@@ -40,13 +41,13 @@ public class DetailsActivity extends AppCompatActivity {
             switch (id) {
 
                 case R.id.navigation_reviews: {
-                    ExtraDialogFragment dialogFragment = ExtraDialogFragment.newInstance(String.valueOf(movie.getId()), "review");
+                    ExtraDialogFragment dialogFragment = ExtraDialogFragment.newInstance(String.valueOf(movieItem.getId()), "review");
                     dialogFragment.show(getSupportFragmentManager(), "FragmentDialog");
 
                     break;
                 }
                 case R.id.navigation_trailers: {
-                    ExtraDialogFragment dialogFragment = ExtraDialogFragment.newInstance(String.valueOf(movie.getId()), "trailer");
+                    ExtraDialogFragment dialogFragment = ExtraDialogFragment.newInstance(String.valueOf(movieItem.getId()), "trailer");
                     dialogFragment.show(getSupportFragmentManager(), "FragmentDialog");
 
                     break;
@@ -68,12 +69,12 @@ public class DetailsActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        if (intent.hasExtra("current Movie")) {
+        if (intent.hasExtra("current MovieItem")) {
 
-             movie = intent.getParcelableExtra("current Movie");
+             movieItem = intent.getParcelableExtra("current MovieItem");
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.profile_container, MovieProfile.newInstance(movie))
+                    .replace(R.id.profile_container, MovieProfileFragment.newInstance(movieItem))
                     .commit();
 
 

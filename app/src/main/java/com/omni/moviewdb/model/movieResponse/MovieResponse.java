@@ -22,10 +22,10 @@ public class MovieResponse implements Parcelable {
     private Integer totalPages;
     @SerializedName("results")
     @Expose
-    private List<Movie> movies = null;
+    private List<MovieItem> movies = null;
 
     protected MovieResponse(Parcel in) {
-        movies = in.createTypedArrayList(Movie.CREATOR);
+        movies = in.createTypedArrayList(MovieItem.CREATOR);
     }
 
     public static final Creator<MovieResponse> CREATOR = new Creator<MovieResponse>() {
@@ -64,11 +64,11 @@ public class MovieResponse implements Parcelable {
         this.totalPages = totalPages;
     }
 
-    public List<Movie> getMovies() {
+    public List<MovieItem> getMovies() {
         return movies;
     }
 
-    public void setResults(List<Movie> movies) {
+    public void setResults(List<MovieItem> movies) {
         this.movies = movies;
     }
 
