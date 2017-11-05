@@ -9,7 +9,11 @@ android {
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    dexOptions {
+        javaMaxHeapSize "4g" //specify the heap size for the dex process
     }
     buildTypes {
         release {
@@ -21,7 +25,7 @@ android {
         exclude 'META-INF/services/javax.annotation.processing.Processor'  // butterknife
     }
     buildTypes.each {
-        it.buildConfigField('String', 'MOVIE_DB_API_KEY', '"/**add your Api key here*/"')
+        it.buildConfigField('String', 'MOVIE_DB_API_KEY', '"API_KEY"')
     }
 }
 
@@ -36,8 +40,8 @@ dependencies {
     //ButterKnife for bindingData
 
     // Retrofit & OkHttp
-
-    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    compile 'com.android.support:multidex:1.0.0'
+    compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.github.bumptech.glide:glide:4.1.1'
     compile 'com.jakewharton:butterknife:8.8.1'
@@ -45,14 +49,13 @@ dependencies {
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.squareup.okhttp3:logging-interceptor:3.4.1'
-    compile 'com.android.support:recyclerview-v7:26.0.0-alpha1'
-    compile 'com.android.support:design:26.0.0-alpha1'
+    compile 'com.android.support:recyclerview-v7:26.+'
+    compile 'com.android.support:design:26.+'
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.1.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
 
-    compile 'io.realm:realm-android:0.82.1'
 
     compile 'org.parceler:parceler-api:1.1.6'
     annotationProcessor 'org.parceler:parceler:1.1.6'

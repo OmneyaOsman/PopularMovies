@@ -1,7 +1,10 @@
 package com.omni.moviewdb.fragments;
 
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -37,20 +40,12 @@ public class FavoriteMoviesFragment extends Fragment implements
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView;
 
-//    @BindView(R.id.progressBar)
-//    ProgressBar progressBar ;
-
-//    @BindView(R.id.movies_swipe_refresh)
-//    SwipeRefreshLayout swipeRefreshLayout ;
-
-//    private List<MovieItem> movies  = null;
-
-    private static String key = "";
     private MovieClickListener movieListener;
 
     private ImageAdapter mAdapter;
 
     private static final int MOVIE_LOADER_ID = 0;
+    private GridLayoutManager manager;
 
 
     public void setMovieListener(MovieClickListener movieClickListener) {
@@ -82,7 +77,7 @@ public class FavoriteMoviesFragment extends Fragment implements
 
         setMovieListener((MainActivity) getActivity());
 
-        GridLayoutManager manager = new GridLayoutManager(getActivity(), numberOfColumns());
+         manager = new GridLayoutManager(getActivity(), numberOfColumns());
         recyclerView.setLayoutManager(manager);
 
         return rootView;
@@ -199,15 +194,51 @@ public class FavoriteMoviesFragment extends Fragment implements
     }
 
 
-    /**
-     * Called when a previously created loader is being reset, and thus
-     * making its data unavailable.
-     * onLoaderReset removes any references this activity had to the loader's data.
-     *
-     * @param loader The Loader that is being reset.
-     */
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mAdapter.swapCursor(null);
+    }
+
+    private final String KEY_RECYCLER_STATE = "recycler_state";
+    private static Bundle mBundleRecyclerViewState;
+    private Parcelable mListState = null;
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+
+        mBundleRecyclerViewState = new Bundle();
+        mListState = recyclerView.getLayoutManager().onSaveInstanceState();
+        mBundleRecyclerViewState.putParcelable(KEY_RECYCLER_STATE, mListState);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (mBundleRecyclerViewState != null) {
+            new Handler().postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    mListState = mBundleRecyclerViewState.getParcelable(KEY_RECYCLER_STATE);
+                    recyclerView.getLayoutManager().onRestoreInstanceState(mListState);
+
+                }
+            }, 50);
+        }
+
+//        // Checks the orientation of the screen
+//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//
+//            gridLayoutManager.setSpanCount(columns);
+//
+//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+//
+//            gridLayoutManager.setSpanCount(columns);
+//
+//        }
+        recyclerView.setLayoutManager(manager);
     }
 }

@@ -18,7 +18,7 @@
         android:hardwareAccelerated="false"
         android:name=".utils.AppController">
         <activity android:name=".activity.MainActivity"
-            >
+            android:configChanges="orientation|screenSize" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

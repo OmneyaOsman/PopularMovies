@@ -2,12 +2,13 @@ package com.omni.moviewdb.fragments;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -40,7 +41,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnRefreshListener ,
+public class Homefragment extends BaseFragment implements
         ImageAdapter.OnItemClickListener {
 
 
@@ -52,8 +53,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
     @BindView(R.id.progressBar)
     ProgressBar progressBar ;
 
-    @BindView(R.id.movies_swipe_refresh)
-    SwipeRefreshLayout swipeRefreshLayout ;
+
 
     private List<MovieItem> movies = null;
 
@@ -105,8 +105,6 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 recyclerView.setAdapter(mAdapter);
 
 
-//                Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(RECYCLER_VIEW_STATE);
-                recyclerView.getLayoutManager().onRestoreInstanceState(state);
             }
         }
     }
@@ -136,33 +134,9 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
     }
 
 
-   static Parcelable state;
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        state = manager.onSaveInstanceState();
-    }
 
-//    @Override
-//    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-//        super.onViewCreated(view, savedInstanceState);
-//
-//        if(savedInstanceState != null)
-//        {
-//
-//            movies = savedInstanceState.getParcelableArrayList("movies");
-//
-//            if (movies != null) {
-//                mAdapter = new ImageAdapter(getActivity(),
-//                        getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
-//                recyclerView.setAdapter(mAdapter);
-//            }
-//
-//            Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(RECYCLER_VIEW_STATE);
-//            recyclerView.getLayoutManager().onRestoreInstanceState(savedRecyclerLayoutState);
-//        }
-//    }
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -173,7 +147,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
 
             if (savedInstanceState == null ) {
 
-                GridLayoutManager manager = new GridLayoutManager(getActivity(), numberOfColumns());
+                 manager = new GridLayoutManager(getActivity(), numberOfColumns());
                 recyclerView.setLayoutManager(manager);
 
                 if (isNetworkConnected()) {
@@ -181,11 +155,11 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                     if (getSortKey().equals(getString(R.string.pref_sort_by_popular_value))) {
                         ApiService apiService = ApiClient.getClient().create(ApiService.class);
                         getMovies = apiService.getPopularMovies(BuildConfig.MOVIE_DB_API_KEY);
-                        senMoviesRequest(getMovies, 0);
+                        senMoviesRequest(getMovies);
                     } else if (getSortKey().equals(getString(R.string.pref_sort_by_top_rated_value))) {
                         ApiService apiService = ApiClient.getClient().create(ApiService.class);
                         getMovies = apiService.getTopRatedMovies(BuildConfig.MOVIE_DB_API_KEY);
-                        senMoviesRequest(getMovies, 0);
+                        senMoviesRequest(getMovies);
                     }
 
 
@@ -196,7 +170,6 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
             }
 
 
-            swipeRefreshLayout.setOnRefreshListener(this);
         }
 
     }
@@ -210,7 +183,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 getString(R.string.pref_sort_by_default_value));
     }
 
-    private void senMoviesRequest(Call<MovieResponse> getMovies, final int refresh) {
+    private void senMoviesRequest(Call<MovieResponse> getMovies) {
 
         progressBar.setVisibility(View.VISIBLE);
         getMovies.enqueue(new Callback<MovieResponse>() {
@@ -228,8 +201,6 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 }
 
 
-                if (refresh == 1)
-                    swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
@@ -254,8 +225,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
                 Toast.makeText(getActivity(), errorType, Toast.LENGTH_SHORT).show();
                 call.cancel();
 
-                if (refresh == 1)
-                    swipeRefreshLayout.setRefreshing(false);
+
             }
         });
     }
@@ -289,28 +259,7 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
             getMovies.cancel();
     }
 
-    @Override
-    public void onRefresh() {
 
-        if (isNetworkConnected()) {
-
-
-            ApiService apiService = ApiClient.getClient().create(ApiService.class);
-            if (getSortKey().equals(getString(R.string.pref_sort_by_popular_value)))
-                getMovies = apiService.getPopularMovies(BuildConfig.MOVIE_DB_API_KEY);
-            else if (getSortKey().equals(getString(R.string.pref_sort_by_top_rated_value)))
-                getMovies = apiService.getTopRatedMovies(BuildConfig.MOVIE_DB_API_KEY);
-            else
-
-            senMoviesRequest(getMovies, 1);
-
-        } else {
-            progressBar.setVisibility(View.GONE);
-            Toast.makeText(getActivity(), R.string.check_network, Toast.LENGTH_SHORT).show();
-        }
-
-
-    }
 
     @Override
     public void setOnItemClickListener(int position) {
@@ -319,4 +268,36 @@ public class Homefragment extends BaseFragment implements SwipeRefreshLayout.OnR
 
     }
 
+    private final String KEY_RECYCLER_STATE = "recycler_state";
+    private static Bundle mBundleRecyclerViewState;
+    private Parcelable mListState = null;
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+
+        mBundleRecyclerViewState = new Bundle();
+        mListState = recyclerView.getLayoutManager().onSaveInstanceState();
+        mBundleRecyclerViewState.putParcelable(KEY_RECYCLER_STATE, mListState);
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (mBundleRecyclerViewState != null) {
+            new Handler().postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    mListState = mBundleRecyclerViewState.getParcelable(KEY_RECYCLER_STATE);
+                    recyclerView.getLayoutManager().onRestoreInstanceState(mListState);
+
+                }
+            }, 50);
+        }
+
+
+        recyclerView.setLayoutManager(manager);
+    }
 }
