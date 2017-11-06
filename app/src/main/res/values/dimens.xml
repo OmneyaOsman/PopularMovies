@@ -5,4 +5,5 @@
     <dimen name="image_width">185dp</dimen>
     <dimen name="image_height">280dp</dimen>
     <dimen name="padding_space">16dp</dimen>
+    <dimen name="padding_16">16dp</dimen>
 </resources>

@@ -102,13 +102,35 @@
 
             </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="@dimen/fab_margin"
-                android:text="@string/title_overView"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textStyle="bold"/>
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/fab_margin"
+                    android:text="@string/title_overView"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textStyle="bold"/>
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/floatingActionButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    app:fabSize="normal"
+                    app:srcCompat="@android:drawable/star_off"
+                    app:layout_anchor="@id/app_bar"
+                    />
+
+
+
+            </LinearLayout>
+
+
+
 
             <TextView
                 android:id="@+id/overView"
@@ -123,17 +145,17 @@
 
 
     </android.support.v4.widget.NestedScrollView>
+    <!--<android.support.design.widget.FloatingActionButton-->
+        <!--android:id="@+id/floatingActionButton"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:clickable="true"-->
+        <!--app:fabSize="normal"-->
+        <!--app:srcCompat="@android:drawable/star_off"-->
+        <!--app:layout_anchor="@id/app_bar"-->
+        <!--app:layout_anchorGravity="bottom|end"/>-->
 
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/floatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        app:fabSize="normal"
-        app:srcCompat="@android:drawable/star_off"
-        app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"/>
 
 </android.support.design.widget.CoordinatorLayout>
 

@@ -12,7 +12,6 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -77,22 +76,22 @@ public class FavoriteMoviesFragment extends Fragment implements
 
         setMovieListener((MainActivity) getActivity());
 
-         manager = new GridLayoutManager(getActivity(), numberOfColumns());
+         manager = new GridLayoutManager(getActivity(), 2);
         recyclerView.setLayoutManager(manager);
 
         return rootView;
     }
 
-    private int numberOfColumns() {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        // You can change this divider to adjust the size of the poster
-        int widthDivider = 185;
-        int width = displayMetrics.widthPixels;
-        int nColumns = width / widthDivider;
-        if (nColumns < 2) return 2;
-        return nColumns;
-    }
+//    private int numberOfColumns() {
+//        DisplayMetrics displayMetrics = new DisplayMetrics();
+//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//        // You can change this divider to adjust the size of the poster
+//        int widthDivider = 185;
+//        int width = displayMetrics.widthPixels;
+//        int nColumns = width / widthDivider;
+//        if (nColumns < 2) return 2;
+//        return nColumns;
+//    }
 
 
     @Override
