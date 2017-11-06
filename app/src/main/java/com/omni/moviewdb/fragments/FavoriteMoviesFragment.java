@@ -1,9 +1,7 @@
 package com.omni.moviewdb.fragments;
 
-import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -60,8 +58,16 @@ public class FavoriteMoviesFragment extends Fragment implements
     }
 
     @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        if (mListState != null) {
+            manager.onRestoreInstanceState(mListState);
+        }
 
         getActivity().getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
 
@@ -76,28 +82,43 @@ public class FavoriteMoviesFragment extends Fragment implements
 
         setMovieListener((MainActivity) getActivity());
 
-         manager = new GridLayoutManager(getActivity(), 2);
-        recyclerView.setLayoutManager(manager);
+
 
         return rootView;
     }
 
-//    private int numberOfColumns() {
-//        DisplayMetrics displayMetrics = new DisplayMetrics();
-//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//        // You can change this divider to adjust the size of the poster
-//        int widthDivider = 185;
-//        int width = displayMetrics.widthPixels;
-//        int nColumns = width / widthDivider;
-//        if (nColumns < 2) return 2;
-//        return nColumns;
-//    }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager != null && layoutManager instanceof GridLayoutManager) {
+            int mScrollPosition = ((GridLayoutManager) layoutManager).findFirstVisibleItemPosition();
+            outState.putInt("mScrollPosition", mScrollPosition);
+
+        }
+    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        manager = new GridLayoutManager(getActivity(), 2);
+        recyclerView.setLayoutManager(manager);
+
+        if(savedInstanceState!=null) {
+
+            int mScrollPosition = savedInstanceState.getInt("mScrollPosition");
+            RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+            if(layoutManager != null){
+                int count = layoutManager.getChildCount();
+                if(mScrollPosition != RecyclerView.NO_POSITION && mScrollPosition < count){
+                    layoutManager.scrollToPosition(mScrollPosition);
+                }
+            }
+
+        }
 
         mAdapter = new ImageAdapter(getActivity(), FavoriteMoviesFragment.this, 1);
         recyclerView.setAdapter(mAdapter);
@@ -199,45 +220,7 @@ public class FavoriteMoviesFragment extends Fragment implements
     }
 
     private final String KEY_RECYCLER_STATE = "recycler_state";
-    private static Bundle mBundleRecyclerViewState;
     private Parcelable mListState = null;
 
-    @Override
-    public void onPause() {
-        super.onPause();
 
-
-        mBundleRecyclerViewState = new Bundle();
-        mListState = recyclerView.getLayoutManager().onSaveInstanceState();
-        mBundleRecyclerViewState.putParcelable(KEY_RECYCLER_STATE, mListState);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        if (mBundleRecyclerViewState != null) {
-            new Handler().postDelayed(new Runnable() {
-
-                @Override
-                public void run() {
-                    mListState = mBundleRecyclerViewState.getParcelable(KEY_RECYCLER_STATE);
-                    recyclerView.getLayoutManager().onRestoreInstanceState(mListState);
-
-                }
-            }, 50);
-        }
-
-//        // Checks the orientation of the screen
-//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//
-//            gridLayoutManager.setSpanCount(columns);
-//
-//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-//
-//            gridLayoutManager.setSpanCount(columns);
-//
-//        }
-        recyclerView.setLayoutManager(manager);
-    }
 }

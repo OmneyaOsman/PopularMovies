@@ -9,23 +9,29 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.omni.moviewdb.api.ApiClient;
-import com.omni.moviewdb.api.ApiService;
 import com.omni.moviewdb.BuildConfig;
 import com.omni.moviewdb.R;
 import com.omni.moviewdb.adapter.ReviewsAdapter;
 import com.omni.moviewdb.adapter.TrailersAdapter;
+import com.omni.moviewdb.api.ApiClient;
+import com.omni.moviewdb.api.ApiService;
+import com.omni.moviewdb.model.reviewsResponse.Review;
 import com.omni.moviewdb.model.reviewsResponse.ReviewResponse;
+import com.omni.moviewdb.model.trailerResponse.Trailer;
 import com.omni.moviewdb.model.trailerResponse.TrailerResponse;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -33,6 +39,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.bumptech.glide.gifdecoder.GifHeaderParser.TAG;
 
 
 public class ExtraDialogFragment extends DialogFragment {
@@ -58,8 +65,22 @@ public class ExtraDialogFragment extends DialogFragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (reviewArrayList != null)
+            outState.putParcelableArrayList("reviews", (ArrayList<Review>) reviewArrayList);
+        if (trailerList != null)
+            outState.putParcelableArrayList("trailers", (ArrayList<Trailer>) trailerList);
+
+        outState.putInt("pos" , position);
+
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setRetainInstance(true);
         if(getArguments()!=null){
             if(getArguments().containsKey("id"))
                 movieId = getArguments().getString("id");
@@ -68,6 +89,7 @@ public class ExtraDialogFragment extends DialogFragment {
         }
     }
 
+    int position =0;
 
     @NonNull
     @Override
@@ -81,11 +103,45 @@ public class ExtraDialogFragment extends DialogFragment {
 
         ButterKnife.bind(this, view);
 
-        if (type.equals("review")) {
-            reviewRequest();
+        if(savedInstanceState!=null){
+            if(savedInstanceState.containsKey("reviews")) {
+                reviewArrayList = savedInstanceState.getParcelableArrayList("reviews");
+                ReviewsAdapter adapter = new ReviewsAdapter(getActivity(), (ArrayList<Review>) reviewArrayList);
+                listView.setAdapter(adapter);
+            }
+            if(savedInstanceState.containsKey("trailers")) {
+                trailerList = savedInstanceState.getParcelableArrayList("trailers");
+                adapter = new TrailersAdapter(getActivity(),(ArrayList<Trailer>) trailerList );
+                listView.setAdapter(adapter);
+            }
 
-        } else
-            trailerRequest();
+            if(savedInstanceState.containsKey("pos"))
+
+                listView.setSelection(savedInstanceState.getInt("pos"));
+            Log.d(TAG, "onCreateDialog: ");
+        }else {
+            if (type.equals("review")) {
+                reviewRequest();
+
+            } else
+                trailerRequest();
+        }
+
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem,
+                                 int visibleItemCount, int totalItemCount) {
+                position = firstVisibleItem;
+
+            }
+        });
 
 
         builder.setView(view);
@@ -93,7 +149,7 @@ public class ExtraDialogFragment extends DialogFragment {
     }
 
 
-
+List<Review> reviewArrayList ;
     private void reviewRequest(){
 
 
@@ -104,7 +160,8 @@ public class ExtraDialogFragment extends DialogFragment {
                 public void onResponse(@NonNull Call<ReviewResponse> call, @NonNull Response<ReviewResponse> response) {
 
                     if(response.body()!=null && response.body().getResults()!=null) {
-                        ReviewsAdapter adapter = new ReviewsAdapter(getActivity(), response.body().getResults());
+                        reviewArrayList = response.body().getResults();
+                        ReviewsAdapter adapter = new ReviewsAdapter(getActivity(), (ArrayList<Review>) reviewArrayList);
                         listView.setAdapter(adapter);
                     }else
                         emptyView.setVisibility(View.VISIBLE);
@@ -137,7 +194,7 @@ public class ExtraDialogFragment extends DialogFragment {
 
     }
 
-
+private List<Trailer> trailerList ;
     private void trailerRequest(){
 
 
@@ -148,7 +205,8 @@ public class ExtraDialogFragment extends DialogFragment {
                 public void onResponse(@NonNull Call<TrailerResponse> call, @NonNull Response<TrailerResponse> response) {
 
                     if(response.body()!=null && response.body().getResults()!=null) {
-                         adapter = new TrailersAdapter(getActivity(), response.body().getResults());
+                        trailerList = response.body().getResults();
+                         adapter = new TrailersAdapter(getActivity(),(ArrayList<Trailer>) trailerList );
                         listView.setAdapter(adapter);
                     }
                     else
@@ -200,5 +258,13 @@ public class ExtraDialogFragment extends DialogFragment {
         } catch (ActivityNotFoundException ex) {
             startActivity(webIntent);
         }
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        if (getDialog() != null && getRetainInstance())
+            getDialog().setDismissMessage(null);
+        super.onDestroyView();
     }
 }

@@ -1,10 +1,7 @@
 package com.omni.moviewdb.fragments;
 
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -78,35 +75,24 @@ public class Homefragment extends BaseFragment implements
     }
 
 
-
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("movies" ,(ArrayList<MovieItem>) movies);
-        outState.putParcelable(RECYCLER_VIEW_STATE, recyclerView.getLayoutManager().onSaveInstanceState());
 
-    }
+        outState.putParcelableArrayList("movies", (ArrayList<MovieItem>) movies);
 
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager != null && layoutManager instanceof GridLayoutManager) {
+            int mScrollPosition = ((GridLayoutManager) layoutManager).findFirstVisibleItemPosition();
+            outState.putInt("mScrollPosition", mScrollPosition);
 
-    @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-
-        if(savedInstanceState != null)
-        {
-
-            movies = savedInstanceState.getParcelableArrayList("movies");
-
-            if (movies != null) {
-                mAdapter = new ImageAdapter(getActivity(),
-                        getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
-                recyclerView.setAdapter(mAdapter);
-
-
-            }
         }
+
+
     }
+
+
+//
 
     @Nullable
     @Override
@@ -117,37 +103,18 @@ public class Homefragment extends BaseFragment implements
         setMovieListener((MainActivity) getActivity());
 
 
-
         return rootView;
     }
 
-//    private int numberOfColumns() {
-//        DisplayMetrics displayMetrics = new DisplayMetrics();
-//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//        // You can change this divider to adjust the size of the poster
-//        int widthDivider = 185;
-//        int width = displayMetrics.widthPixels;
-//        int nColumns = width / widthDivider;
-//        if (nColumns < 2) return 2;
-//        return nColumns;
-//    }
-
-
-
-
-
-
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         if (getActivity() != null) {
 
-            if (savedInstanceState == null ) {
+            manager = new GridLayoutManager(getActivity(), 2);
+            recyclerView.setLayoutManager(manager);
 
-                 manager = new GridLayoutManager(getActivity(), 2);
-                recyclerView.setLayoutManager(manager);
+            if (savedInstanceState == null ) {
 
                 if (isNetworkConnected()) {
 
@@ -166,12 +133,34 @@ public class Homefragment extends BaseFragment implements
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(getActivity(), R.string.check_network, Toast.LENGTH_SHORT).show();
                 }
+            }else
+            {
+
+                movies = savedInstanceState.getParcelableArrayList("movies");
+
+                if (movies != null) {
+
+                    int mScrollPosition = savedInstanceState.getInt("mScrollPosition");
+                    RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+                    if(layoutManager != null){
+                        int count = layoutManager.getChildCount();
+                        if(mScrollPosition != RecyclerView.NO_POSITION && mScrollPosition < count){
+                            layoutManager.scrollToPosition(mScrollPosition);
+                        }
+                    }
+                }
+                mAdapter = new ImageAdapter(getActivity(),
+                        getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
+                recyclerView.setAdapter(mAdapter);
+
+
             }
 
 
         }
 
     }
+
 
 
     private String getSortKey() {
@@ -230,10 +219,7 @@ public class Homefragment extends BaseFragment implements
     }
 
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
+
 
     private ArrayList<String> getPostersList(ArrayList<MovieItem> movies) {
         ArrayList<String> posters = new ArrayList<>();
@@ -271,32 +257,6 @@ public class Homefragment extends BaseFragment implements
     private static Bundle mBundleRecyclerViewState;
     private Parcelable mListState = null;
 
-    @Override
-    public void onPause() {
-        super.onPause();
 
 
-        mBundleRecyclerViewState = new Bundle();
-        mListState = recyclerView.getLayoutManager().onSaveInstanceState();
-        mBundleRecyclerViewState.putParcelable(KEY_RECYCLER_STATE, mListState);
-    }
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        if (mBundleRecyclerViewState != null) {
-            new Handler().postDelayed(new Runnable() {
-
-                @Override
-                public void run() {
-                    mListState = mBundleRecyclerViewState.getParcelable(KEY_RECYCLER_STATE);
-                    recyclerView.getLayoutManager().onRestoreInstanceState(mListState);
-
-                }
-            }, 50);
-        }
-
-
-        recyclerView.setLayoutManager(manager);
-    }
 }

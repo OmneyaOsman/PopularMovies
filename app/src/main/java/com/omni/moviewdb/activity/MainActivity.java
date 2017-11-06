@@ -38,14 +38,20 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
         else {
             keySort = currentSort;
             if (keySort.equals(getString(R.string.pref_sort_by_favorites_value))) {
-                FavoriteMoviesFragment fragment = new FavoriteMoviesFragment();
+                FavoriteMoviesFragment fragment;
+                fragment = (FavoriteMoviesFragment) getSupportFragmentManager().findFragmentByTag("favoriteTag");
+                if (fragment == null)
+                    fragment = new FavoriteMoviesFragment();
                 fragment.setMovieListener(this);
-                startFragment(fragment);
+                startFragment(fragment, "favoriteTag");
             } else {
 
-                Homefragment homefragment = new Homefragment();
+                Homefragment homefragment;
+                homefragment = (Homefragment) getSupportFragmentManager().findFragmentByTag("homeTag");
+                if(homefragment==null)
+                    homefragment= new Homefragment();
                 homefragment.setMovieListener(this);
-                startFragment(homefragment);
+                startFragment(homefragment, "homeTag");
             }
         }
 
@@ -64,14 +70,20 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
 
         keySort = getSortKey();
         if (keySort.equals(getString(R.string.pref_sort_by_favorites_value))) {
-            FavoriteMoviesFragment fragment = new FavoriteMoviesFragment();
+            FavoriteMoviesFragment fragment;
+            fragment = (FavoriteMoviesFragment) getSupportFragmentManager().findFragmentByTag("favoriteTag");
+            if (fragment == null)
+                fragment = new FavoriteMoviesFragment();
             fragment.setMovieListener(this);
-            startFragment(fragment);
+            startFragment(fragment, "favoriteTag");
         } else {
 
-            Homefragment homefragment = new Homefragment();
+            Homefragment homefragment;
+            homefragment = (Homefragment) getSupportFragmentManager().findFragmentByTag("homeTag");
+            if(homefragment==null)
+                homefragment= new Homefragment();
             homefragment.setMovieListener(this);
-            startFragment(homefragment);
+            startFragment(homefragment, "homeTag");
         }
 
 
@@ -82,8 +94,9 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
         super.onBackPressed();
     }
 
-    private void startFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction().replace(R.id.main_container, fragment).commit();
+    private void startFragment(Fragment fragment , String tag) {
+
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_container, fragment,tag).commit();
     }
 
     private String getSortKey() {

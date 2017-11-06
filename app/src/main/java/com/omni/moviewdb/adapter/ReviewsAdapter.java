@@ -11,8 +11,7 @@ import android.widget.TextView;
 import com.omni.moviewdb.R;
 import com.omni.moviewdb.model.reviewsResponse.Review;
 
-import java.util.List;
-
+import java.util.ArrayList;
 
 
 public class ReviewsAdapter extends ArrayAdapter<Review> {
@@ -21,7 +20,7 @@ public class ReviewsAdapter extends ArrayAdapter<Review> {
 
 
 
-    public ReviewsAdapter(Context context, List<Review> objects) {
+    public ReviewsAdapter(Context context, ArrayList<Review> objects) {
         super(context, 0,objects);
     }
 

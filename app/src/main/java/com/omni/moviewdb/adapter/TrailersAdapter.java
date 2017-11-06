@@ -11,8 +11,7 @@ import android.widget.TextView;
 import com.omni.moviewdb.R;
 import com.omni.moviewdb.model.trailerResponse.Trailer;
 
-import java.util.List;
-
+import java.util.ArrayList;
 
 
 public class TrailersAdapter extends ArrayAdapter<Trailer> {
@@ -21,7 +20,7 @@ public class TrailersAdapter extends ArrayAdapter<Trailer> {
 
 
 
-    public TrailersAdapter(Context context, List<Trailer> objects) {
+    public TrailersAdapter(Context context, ArrayList<Trailer> objects) {
         super(context, 0,objects);
     }
 
