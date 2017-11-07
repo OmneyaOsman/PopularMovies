@@ -3,10 +3,12 @@ package com.omni.moviewdb.activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -25,36 +27,52 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
     Toolbar toolbar;
 
 
-    private static String keySort = "";
+
+    FavoriteMoviesFragment
+            favoriteFragment ;
+
+    Homefragment homeFragment ;
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        String currentSort = getSortKey();
 
-        if (currentSort.equals(keySort))
-            return;
-        else {
-            keySort = currentSort;
-            if (keySort.equals(getString(R.string.pref_sort_by_favorites_value))) {
-                FavoriteMoviesFragment fragment;
-                fragment = (FavoriteMoviesFragment) getSupportFragmentManager().findFragmentByTag("favoriteTag");
-                if (fragment == null)
-                    fragment = new FavoriteMoviesFragment();
-                fragment.setMovieListener(this);
-                startFragment(fragment, "favoriteTag");
-            } else {
+//        String currentSort = getSortKey();
+//
+//        if (currentSort.equals(keySort))
+//            return;
+//        else {
+//            keySort = currentSort;
+//            if (keySort.equals(getString(R.string.pref_sort_by_favorites_value))) {
+//                FavoriteMoviesFragment fragment;
+//                fragment = (FavoriteMoviesFragment) getSupportFragmentManager().findFragmentByTag("favoriteTag");
+//                if (fragment == null)
+//                    fragment = new FavoriteMoviesFragment();
+//                fragment.setMovieListener(this);
+//                startFragment(fragment, "favoriteTag");
+//                Log.d("GifHeaderParser", "onResumeActivity: "+keySort);
+//            } else {
+//
+//                Homefragment homefragment;
+//                homefragment = (Homefragment) getSupportFragmentManager().findFragmentByTag("homeTag");
+//                if(homefragment==null)
+//                    homefragment= new Homefragment();
+//                homefragment.setMovieListener(this);
+//                startFragment(homefragment, "homeTag");
+//            }
+//        }
+    }
 
-                Homefragment homefragment;
-                homefragment = (Homefragment) getSupportFragmentManager().findFragmentByTag("homeTag");
-                if(homefragment==null)
-                    homefragment= new Homefragment();
-                homefragment.setMovieListener(this);
-                startFragment(homefragment, "homeTag");
-            }
-        }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+
+        if(favoriteFragment!=null)
+            outState.putString("fav" , favoriteFragment.getTag());
+        else if(homeFragment!=null)
+            outState.putString("home" , homeFragment.getTag());
     }
 
     @Override
@@ -68,23 +86,28 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
         toolbar.setTitle(R.string.app_name);
         setSupportActionBar(toolbar);
 
-        keySort = getSortKey();
-        if (keySort.equals(getString(R.string.pref_sort_by_favorites_value))) {
-            FavoriteMoviesFragment fragment;
-            fragment = (FavoriteMoviesFragment) getSupportFragmentManager().findFragmentByTag("favoriteTag");
-            if (fragment == null)
-                fragment = new FavoriteMoviesFragment();
-            fragment.setMovieListener(this);
-            startFragment(fragment, "favoriteTag");
-        } else {
+        if (savedInstanceState == null) {
+            String keySort = getSortKey();
+            if (keySort.equals(getString(R.string.pref_sort_by_favorites_value))) {
+                Log.d("GifHeaderParser", "onCreateActivity: " + keySort);
 
-            Homefragment homefragment;
-            homefragment = (Homefragment) getSupportFragmentManager().findFragmentByTag("homeTag");
-            if(homefragment==null)
-                homefragment= new Homefragment();
-            homefragment.setMovieListener(this);
-            startFragment(homefragment, "homeTag");
+                favoriteFragment = new FavoriteMoviesFragment();
+                favoriteFragment.setMovieListener(this);
+                startFragment(favoriteFragment, "favoriteTag");
+            } else {
+
+                homeFragment = new Homefragment();
+                homeFragment.setMovieListener(this);
+                startFragment(homeFragment, "homeTag");
+            }
+        } else {
+            if (savedInstanceState.containsKey("fav"))
+                favoriteFragment = (FavoriteMoviesFragment) getSupportFragmentManager().findFragmentByTag(savedInstanceState.getString("fav"));
+
+            if (savedInstanceState.containsKey("home"))
+                homeFragment = (Homefragment) getSupportFragmentManager().findFragmentByTag(savedInstanceState.getString("home"));
         }
+
 
 
     }

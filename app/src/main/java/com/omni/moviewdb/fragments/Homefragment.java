@@ -2,12 +2,12 @@ package com.omni.moviewdb.fragments;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +36,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.bumptech.glide.gifdecoder.GifHeaderParser.TAG;
+
 
 public class Homefragment extends BaseFragment implements
         ImageAdapter.OnItemClickListener {
@@ -57,9 +59,10 @@ public class Homefragment extends BaseFragment implements
 
     private ImageAdapter mAdapter;
 
-    private static final String RECYCLER_VIEW_STATE = "state";
 
     private GridLayoutManager manager ;
+
+    private static String StoredKey = "";
 
 
     public void setMovieListener(MovieClickListener movieClickListener) {
@@ -75,17 +78,19 @@ public class Homefragment extends BaseFragment implements
     }
 
 
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        if (movies != null ) {
+            outState.putParcelableArrayList("movies", (ArrayList<MovieItem>) movies);
 
-        outState.putParcelableArrayList("movies", (ArrayList<MovieItem>) movies);
+            RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+            if (layoutManager != null && layoutManager instanceof GridLayoutManager) {
+                int mScrollPosition = ((GridLayoutManager) layoutManager).findFirstVisibleItemPosition();
+                outState.putInt("mScrollPosition", mScrollPosition);
 
-        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-        if (layoutManager != null && layoutManager instanceof GridLayoutManager) {
-            int mScrollPosition = ((GridLayoutManager) layoutManager).findFirstVisibleItemPosition();
-            outState.putInt("mScrollPosition", mScrollPosition);
-
+            }
         }
 
 
@@ -109,56 +114,67 @@ public class Homefragment extends BaseFragment implements
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (getActivity() != null) {
+    if (getActivity() != null) {
 
             manager = new GridLayoutManager(getActivity(), 2);
             recyclerView.setLayoutManager(manager);
 
-            if (savedInstanceState == null ) {
+            if (savedInstanceState == null) {
+                String sortKey = getSortKey();
+                StoredKey = sortKey;
+                Log.d(TAG, "onViewCreated: "+StoredKey);
+                makeCall(sortKey);
+            } else {
 
-                if (isNetworkConnected()) {
+                if(savedInstanceState.containsKey("movies")) {
+                    movies = savedInstanceState.getParcelableArrayList("movies");
 
-                    if (getSortKey().equals(getString(R.string.pref_sort_by_popular_value))) {
-                        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                        getMovies = apiService.getPopularMovies(BuildConfig.MOVIE_DB_API_KEY);
-                        senMoviesRequest(getMovies);
-                    } else if (getSortKey().equals(getString(R.string.pref_sort_by_top_rated_value))) {
-                        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                        getMovies = apiService.getTopRatedMovies(BuildConfig.MOVIE_DB_API_KEY);
-                        senMoviesRequest(getMovies);
-                    }
+                    if (movies != null) {
 
-
-                } else {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getActivity(), R.string.check_network, Toast.LENGTH_SHORT).show();
-                }
-            }else
-            {
-
-                movies = savedInstanceState.getParcelableArrayList("movies");
-
-                if (movies != null) {
-
-                    int mScrollPosition = savedInstanceState.getInt("mScrollPosition");
-                    RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-                    if(layoutManager != null){
-                        int count = layoutManager.getChildCount();
-                        if(mScrollPosition != RecyclerView.NO_POSITION && mScrollPosition < count){
-                            layoutManager.scrollToPosition(mScrollPosition);
+                        int mScrollPosition = savedInstanceState.getInt("mScrollPosition");
+                        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+                        if (layoutManager != null) {
+                            int count = layoutManager.getChildCount();
+                            if (mScrollPosition != RecyclerView.NO_POSITION && mScrollPosition < count) {
+                                layoutManager.scrollToPosition(mScrollPosition);
+                            }
                         }
+
+                        mAdapter = new ImageAdapter(getActivity(),
+                                getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
+                        recyclerView.setAdapter(mAdapter);
                     }
                 }
-                mAdapter = new ImageAdapter(getActivity(),
-                        getPostersList((ArrayList<MovieItem>) movies), Homefragment.this);
-                recyclerView.setAdapter(mAdapter);
-
-
             }
 
 
         }
+    }
 
+    private void makeCall(String sortKey){
+
+
+        if (isNetworkConnected()) {
+
+
+
+            if (sortKey.equals(getString(R.string.pref_sort_by_popular_value))) {
+                ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                getMovies = apiService.getPopularMovies(BuildConfig.MOVIE_DB_API_KEY);
+                senMoviesRequest(getMovies);
+            } else if (sortKey.equals(getString(R.string.pref_sort_by_top_rated_value))) {
+                ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                getMovies = apiService.getTopRatedMovies(BuildConfig.MOVIE_DB_API_KEY);
+                senMoviesRequest(getMovies);
+
+            }
+
+
+
+        } else {
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(getActivity(), R.string.check_network, Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -253,10 +269,24 @@ public class Homefragment extends BaseFragment implements
 
     }
 
-    private final String KEY_RECYCLER_STATE = "recycler_state";
-    private static Bundle mBundleRecyclerViewState;
-    private Parcelable mListState = null;
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: "+StoredKey);
+        Log.d(TAG, "onResume: "+getSortKey());
 
-
-
+        if(getSortKey().equals(StoredKey))
+        {
+            Log.d(TAG, "onResume: "+"equal");
+            return;
+        }
+        else {
+            Log.d(TAG, "onResume: "+"notequal");
+            StoredKey = getSortKey();
+            if (StoredKey.equals(getString(R.string.pref_sort_by_favorites_value)))
+                getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_container, new FavoriteMoviesFragment()).commit();
+            else
+                makeCall(StoredKey);
+        }
+    }
 }

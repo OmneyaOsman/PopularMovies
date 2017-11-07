@@ -1,8 +1,9 @@
 package com.omni.moviewdb.fragments;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -25,6 +26,8 @@ import com.omni.moviewdb.model.movieResponse.MovieItem;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+
+import static com.bumptech.glide.gifdecoder.GifHeaderParser.TAG;
 
 /**
  * Created by Omni on 04/11/2017.
@@ -57,20 +60,26 @@ public class FavoriteMoviesFragment extends Fragment implements
 
     }
 
-    @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-    }
+
 
     @Override
     public void onResume() {
         super.onResume();
-        if (mListState != null) {
-            manager.onRestoreInstanceState(mListState);
-        }
 
-        getActivity().getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+        if (!getSortKey().equals(getString(R.string.pref_sort_by_favorites_value)))
+            getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_container, new Homefragment()).commit();
+        else
+            getActivity().getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
 
+    }
+
+
+    private String getSortKey() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        return sharedPreferences.getString(
+                getString(R.string.pref_sort_by_key),
+                getString(R.string.pref_sort_by_default_value));
     }
 
 
@@ -101,14 +110,15 @@ public class FavoriteMoviesFragment extends Fragment implements
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         manager = new GridLayoutManager(getActivity(), 2);
         recyclerView.setLayoutManager(manager);
 
         if(savedInstanceState!=null) {
 
+            Log.d(TAG, "onViewCreated: " +"saved");
             int mScrollPosition = savedInstanceState.getInt("mScrollPosition");
             RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
             if(layoutManager != null){
@@ -118,15 +128,15 @@ public class FavoriteMoviesFragment extends Fragment implements
                 }
             }
 
-        }
+        }else
+            Log.d(TAG, "onViewCreated: " +"notsaved");
+
 
         mAdapter = new ImageAdapter(getActivity(), FavoriteMoviesFragment.this, 1);
         recyclerView.setAdapter(mAdapter);
         // re-queries for all tasks
         getActivity().getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
-
     }
-
 
     @Override
     public void setOnItemClickListener(int position) {
@@ -219,8 +229,6 @@ public class FavoriteMoviesFragment extends Fragment implements
         mAdapter.swapCursor(null);
     }
 
-    private final String KEY_RECYCLER_STATE = "recycler_state";
-    private Parcelable mListState = null;
 
 
 }
